@@ -1,0 +1,40 @@
+{
+  "name": "vortiq",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.ts",
+    "preview_email": "ts-node src/email-templates/preview.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bullmq": "^5.77.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "handlebars": "^4.7.9",
+    "ioredis": "^5.10.1",
+    "jsonwebtoken": "^9.0.3",
+    "knex": "^3.2.10",
+    "pg": "^8.21.0",
+    "resend": "^6.12.3",
+    "tsconfig-paths": "^4.2.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/knex": "^0.15.2",
+    "@types/node": "^25.9.1",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
