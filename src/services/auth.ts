@@ -152,7 +152,7 @@ export const resendVerificationCode = async (
   };
 };
 
-const loginUser = async (
+export const loginUser = async (
   input: LoginUserInput,
 ): Promise<
   ResponseType<{ accessToken: string; refreshToken: string; user: User }>
@@ -168,12 +168,28 @@ const loginUser = async (
     };
   }
 
-  const isMatch = await bcrypt.compare(password, user.data.password);
+  const isMatch = await bcrypt.compare(password, user.data.password as string);
 
   if (!isMatch) {
     return {
       error: true,
       message: "Invalid credentials",
+      statusCode: 401,
+    };
+  }
+
+  if (!user.data.is_verified) {
+    return {
+      error: true,
+      message: "Please verify your email before logging in",
+      statusCode: 401,
+    };
+  }
+
+  if (!user.data.is_active) {
+    return {
+      error: true,
+      message: "Your account is deactivated",
       statusCode: 401,
     };
   }
@@ -190,6 +206,162 @@ const loginUser = async (
 
   return {
     error: false,
-    data: { accessToken, refreshToken, user: user.data },
+    data: {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.data.id,
+        fullname: user.data.fullname,
+        email: user.data.email,
+        phone: user.data.phone,
+        is_verified: user.data.is_verified,
+        is_active: user.data.is_active,
+        auth_provider: user.data.auth_provider,
+        provider_user_id: user.data.provider_user_id,
+        created_at: user.data.created_at,
+        updated_at: user.data.updated_at,
+      },
+    },
+  };
+};
+
+export const refreshAccessToken = async (
+  refreshToken: string,
+): Promise<ResponseType<{ accessToken: string }>> => {
+  const userId = await verifyRefreshToken(refreshToken);
+
+  if (!userId) {
+    return {
+      error: true,
+      message: "Invalid refresh token",
+      statusCode: 401,
+    };
+  }
+
+  const storedToken = await redis.get(`refresh-token:${refreshToken}`);
+
+  if (!storedToken || storedToken !== userId) {
+    return {
+      error: true,
+      message: "Invalid refresh token",
+      statusCode: 401,
+    };
+  }
+
+  const accessToken = generateAccessToken(userId);
+
+  return {
+    error: false,
+    data: { accessToken },
+  };
+};
+
+export const forgotPassword = async (
+  email: string,
+): Promise<ResponseType<null>> => {
+  const user = await usersService.getUserByEmail(email);
+
+  if (user.error === false) {
+    const resetToken = generateOtp();
+    await redis.set(`reset-password:${resetToken}`, user.data.id, "EX", 5 * 60);
+
+    const html = renderEmail("forgot-password", {
+      subject: "Reset Your Password",
+      firstName: user.data.fullname.split(" ")[0],
+      resetCode: resetToken,
+      expiresIn: "5 minutes",
+    });
+
+    await resend.emails.send({
+      from: process.env.MAIL_FROM!,
+      to: email,
+      subject: "Reset Your Password",
+      html,
+    });
+  }
+
+  return {
+    error: false,
+    data: null,
+  };
+};
+
+export const resendResetOtp = async (
+  email: string,
+): Promise<ResponseType<null>> => {
+  const user = await usersService.getUserByEmail(email);
+
+  if (user.error === false) {
+    const resetToken = generateOtp();
+
+    await redis.set(`reset-password:${resetToken}`, user.data.id, "EX", 5 * 60);
+
+    const html = renderEmail("forgot-password", {
+      subject: "Reset Your Password",
+      firstName: user.data.fullname.split(" ")[0],
+      resetCode: resetToken,
+      expiresIn: "5 minutes",
+    });
+
+    await resend.emails.send({
+      from: process.env.MAIL_FROM!,
+      to: email,
+      subject: "Reset Your Password",
+      html,
+    });
+  }
+
+  return {
+    error: false,
+    data: null,
+  };
+};
+
+export const resetPassword = async (
+  resetToken: string,
+  newPassword: string,
+): Promise<ResponseType<null>> => {
+  const userId = await redis.get(`reset-password:${resetToken}`);
+
+  if (!userId) {
+    return {
+      error: true,
+      message: "Invalid or expired reset token",
+      statusCode: 400,
+    };
+  }
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  const [user] = await db("users")
+    .where({ id: userId })
+    .update({ password: hashedPassword, updated_at: new Date() })
+    .returning(["email", "fullname"]);
+
+  await redis.del(`reset-password:${resetToken}`);
+
+  const html = renderEmail("reset-password-success", {
+    subject: "Password Reset Successful",
+    firstName: user.fullname.split(" ")[0],
+  });
+
+  await authQueue.add("password-reset-success", {
+    to: user.email,
+    subject: "Password Reset Successful",
+    html,
+  });
+
+  return {
+    error: false,
+    data: null,
+  };
+};
+
+export const logoutUser = async (
+  refreshToken: string,
+): Promise<ResponseType<null>> => {
+  await redis.del(`refresh-token:${refreshToken}`);
+  return {
+    error: false,
+    data: null,
   };
 };

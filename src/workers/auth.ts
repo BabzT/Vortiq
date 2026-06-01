@@ -12,7 +12,6 @@ new Worker(
   "authQueue",
   async (job) => {
     const { to, subject, html } = job.data;
-    console.log(`Processing job for ${to} with subject: ${subject}`);
 
     await resend.emails.send({
       from: process.env.MAIL_FROM!,

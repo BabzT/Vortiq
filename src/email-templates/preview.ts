@@ -2,11 +2,11 @@ import fs from "fs";
 import path from "path";
 import { renderEmail } from "./renderer";
 
-const html = renderEmail("resend-verification", {
-  subject: "Your new verification code",
+const html = renderEmail("forgot-password", {
+  subject: "Reset Your Password",
   firstName: "Alex",
   email: "alex@example.com",
-  verificationCode: "482917",
+  resetCode: "482917",
   expiresIn: "5 minutes",
 });
 

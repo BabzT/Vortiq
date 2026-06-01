@@ -1,7 +1,7 @@
 export interface User {
   id: string;
   email: string;
-  password: string;
+  password?: string;
   fullname: string;
   phone: string | null;
   is_verified: boolean;
