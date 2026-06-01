@@ -19,6 +19,7 @@ import {
   verifyRefreshToken,
 } from "@/utils/jwt";
 import * as usersService from "@/services/users";
+import { verifyGoogleToken } from "@/utils/google";
 
 export const registerUser = async (
   input: RegisterUserInput,
@@ -353,6 +354,99 @@ export const resetPassword = async (
   return {
     error: false,
     data: null,
+  };
+};
+
+export const googleAuth = async (
+  token: string,
+): Promise<
+  ResponseType<{ accessToken: string; refreshToken: string; user: User }>
+> => {
+  let payload;
+  try {
+    payload = await verifyGoogleToken(token);
+  } catch {
+    return { error: true, message: "Invalid Google token", statusCode: 401 };
+  }
+
+  if (!payload?.email || !payload?.sub) {
+    return { error: true, message: "Invalid Google token", statusCode: 401 };
+  }
+
+  const email: string = payload.email;
+  const googleId: string = payload.sub;
+  const fullname: string = email.split("@")[0];
+
+  let user: User | undefined = await db("users")
+    .where({ provider_user_id: googleId })
+    .orWhere({ email })
+    .first();
+
+  if (user && user.auth_provider === "email") {
+    return {
+      error: true,
+      message:
+        "An account with this email already exists. Please log in with your password.",
+      statusCode: 409,
+    };
+  }
+
+  if (!user) {
+    [user] = await db("users")
+      .insert({
+        email,
+        fullname,
+        password: null,
+        phone: null,
+        auth_provider: "google",
+        provider_user_id: googleId,
+        is_verified: true,
+        is_active: true,
+      })
+      .returning([
+        "id",
+        "email",
+        "fullname",
+        "phone",
+        "is_verified",
+        "is_active",
+        "auth_provider",
+        "provider_user_id",
+        "created_at",
+        "updated_at",
+      ]);
+
+    console.log(fullname);
+
+    const html = renderEmail("verification-success", {
+      subject: "Welcome to Vortiq!",
+      firstName: fullname,
+    });
+
+    await authQueue.add("google-welcome", {
+      to: email,
+      subject: "Welcome to Vortiq!",
+      html,
+    });
+  }
+
+  if (!user) {
+    return { error: true, message: "Internal server error", statusCode: 500 };
+  }
+
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken(user.id);
+
+  await redis.set(
+    `refresh-token:${refreshToken}`,
+    user.id,
+    "EX",
+    7 * 24 * 60 * 60,
+  );
+
+  return {
+    error: false,
+    data: { accessToken, refreshToken, user },
   };
 };
 

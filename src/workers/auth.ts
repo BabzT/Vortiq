@@ -12,13 +12,21 @@ new Worker(
   "authQueue",
   async (job) => {
     const { to, subject, html } = job.data;
+    console.log(`[authQueue] Processing job "${job.name}" → ${to}`);
 
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: process.env.MAIL_FROM!,
       to,
       subject,
       html,
     });
+
+    if (result.error) {
+      console.error(`[authQueue] Resend error:`, result.error);
+      throw new Error(result.error.message);
+    }
+
+    console.log(`[authQueue] Email sent successfully to ${to}`);
   },
   { connection, concurrency: 5 },
 );

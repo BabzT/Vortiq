@@ -2,6 +2,7 @@ import express from "express";
 import * as authController from "@/controllers/auth";
 import {
   forgotPasswordSchema,
+  googleAuthSchema,
   loginSchema,
   refreshTokenSchema,
   registerSchema,
@@ -60,6 +61,12 @@ router.post(
   "/reset-password",
   validateRequestBody(resetPasswordSchema),
   authController.resetPassword,
+);
+
+router.post(
+  "/google",
+  validateRequestBody(googleAuthSchema),
+  authController.googleAuth,
 );
 
 router.post(

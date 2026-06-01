@@ -133,6 +133,29 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
+export const googleAuth = async (req: Request, res: Response) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ error: "Google ID token is required" });
+    }
+
+    const result = await authService.googleAuth(idToken);
+
+    if (result.error) {
+      return res.status(result.statusCode).json({ error: result.message });
+    }
+
+    return res.status(200).json({
+      message: "Google authentication successful",
+      data: result.data,
+    });
+  } catch (error) {
+    console.error("Error in Google authentication:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export const logoutUser = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;

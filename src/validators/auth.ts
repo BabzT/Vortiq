@@ -103,3 +103,11 @@ export const resetPasswordSchema = z
       }),
   })
   .strict();
+
+export const googleAuthSchema = z
+  .object({
+    idToken: z.string({ message: "Google ID token is required" }).min(10, {
+      message: "Google ID token must be at least 10 characters long",
+    }),
+  })
+  .strict();
