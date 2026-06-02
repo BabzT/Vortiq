@@ -1,1 +1,1 @@
-import "./auth";
+import "@/modules/auth/auth.worker";

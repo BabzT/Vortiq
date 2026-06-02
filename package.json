@@ -7,13 +7,16 @@
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
     "build": "tsc",
     "start": "node dist/index.ts",
-    "preview_email": "ts-node src/email-templates/preview.ts"
+    "preview-email": "ts-node src/email-templates/preview.ts",
+    "generate-module": "ts-node scripts/generate-module.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1058.0",
+    "@types/multer": "^2.1.0",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.77.3",
     "dotenv": "^17.4.2",
@@ -23,6 +26,7 @@
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "knex": "^3.2.10",
+    "multer": "^2.1.1",
     "pg": "^8.21.0",
     "resend": "^6.12.3",
     "tsconfig-paths": "^4.2.0",

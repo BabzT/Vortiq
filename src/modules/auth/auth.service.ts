@@ -1,16 +1,16 @@
 import "dotenv/config";
 import db from "@/db";
 import bcrypt from "bcrypt";
-import { User } from "@/types/user";
+import { User } from "@/modules/users/user.types";
 import { ResponseType } from "@/types/response";
 import {
   RegisterUserInput,
   LoginUserInput,
   VerifyEmailInput,
-} from "@/types/auth";
+} from "./auth.types";
 import redis from "@/utils/redis";
 import resend from "@/utils/mailer";
-import { authQueue } from "@/queues/auth";
+import { authQueue } from "./auth.queue";
 import { generateOtp } from "@/helpers/otp";
 import { renderEmail } from "@/email-templates/renderer";
 import {
@@ -18,7 +18,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "@/utils/jwt";
-import * as usersService from "@/services/users";
+import * as usersService from "@/modules/users/users.service";
 import { verifyGoogleToken } from "@/utils/google";
 
 export const registerUser = async (

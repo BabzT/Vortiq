@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import * as authService from "@/services/auth";
-import { RegisterUserInput, VerifyEmailInput } from "@/types/auth";
+import * as authService from "@/modules/auth/auth.service";
+import { RegisterUserInput, VerifyEmailInput } from "@/modules/auth/auth.types";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {

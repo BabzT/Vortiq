@@ -1,6 +1,6 @@
 import db from "@/db";
 import { ResponseType } from "@/types/response";
-import { User } from "@/types/user";
+import { User } from "@/modules/users/user.types";
 
 export const getUserByEmail = async (
   email: string,

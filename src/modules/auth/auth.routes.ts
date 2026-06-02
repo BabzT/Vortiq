@@ -1,5 +1,5 @@
 import express from "express";
-import * as authController from "@/controllers/auth";
+import * as authController from "./auth.controller";
 import {
   forgotPasswordSchema,
   googleAuthSchema,
@@ -9,7 +9,7 @@ import {
   resendVerificationSchema,
   resetPasswordSchema,
   verifyEmailSchema,
-} from "@/validators/auth";
+} from "./auth.validation";
 import { validateRequestBody } from "@/middlewares/validate";
 import { authenticate } from "@/middlewares/authenticate";
 
