@@ -1,38 +1,38 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodError, ZodObject } from "zod";
+import { ZodObject } from "zod";
 
 export const validateRequestBody = (bodySchema: ZodObject) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      bodySchema.parse(req.body);
-      next();
-    } catch (err) {
-      if (err instanceof ZodError) {
-        const message: string = err.issues.map((e) => e.message).join(", ");
-
-        if (err.issues[0]?.code === "unrecognized_keys") {
-          return res
-            .status(400)
-            .send({ message: "Invalid fields in request body" });
-        }
-        return res.status(400).send({ message: message || "Validation error" });
-      }
-      res.status(400).json({ message: "Validation error" });
+    const result = bodySchema.strip().safeParse(req.body);
+    if (!result.success) {
+      const message = result.error.issues.map((e) => e.message).join(", ");
+      return res.status(400).send({ message: message || "Validation error" });
     }
+    req.body = result.data;
+    next();
   };
 };
 
 export const validateRequestParams = (paramsSchema: ZodObject) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      paramsSchema.parse(req.params);
-      next();
-    } catch (err) {
-      if (err instanceof ZodError) {
-        const message: string = err.issues.map((e) => e.message).join(", ");
-        return res.status(400).send({ message: message || "Validation error" });
-      }
-      res.status(400).json({ message: "Validation error" });
+    const result = paramsSchema.strip().safeParse(req.params);
+    if (!result.success) {
+      const message = result.error.issues.map((e) => e.message).join(", ");
+      return res.status(400).send({ message: message || "Validation error" });
     }
+    req.params = result.data as typeof req.params;
+    next();
+  };
+};
+
+export const validateRequestQuery = (querySchema: ZodObject) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = querySchema.strip().safeParse(req.query);
+    if (!result.success) {
+      const message = result.error.issues.map((e) => e.message).join(", ");
+      return res.status(400).send({ message: message || "Validation error" });
+    }
+    (req as any).parsedQuery = result.data;
+    next();
   };
 };

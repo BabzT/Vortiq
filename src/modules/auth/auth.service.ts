@@ -11,7 +11,7 @@ import {
 import redis from "@/utils/redis";
 import resend from "@/utils/mailer";
 import { authQueue } from "./auth.queue";
-import { generateOtp } from "@/helpers/otp";
+import { generateOtp } from "@/helpers/generate";
 import { renderEmail } from "@/email-templates/renderer";
 import {
   generateAccessToken,

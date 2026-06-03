@@ -11,6 +11,8 @@ export const uploadImages = async (req: Request, res: Response) => {
 
     const s3Response = await Promise.all(files.map((file) => uploadToS3(file)));
 
+    console.log("S3 Upload Response:", s3Response);
+
     res.status(201).json({
       message: `${files.length} image(s) uploaded successfully`,
       data: s3Response,
