@@ -13,7 +13,3 @@ export const getProductsQuerySchema = z.object({
   sort_by: z.enum(["name", "price", "created_at"]).default("created_at"),
   sort_order: z.enum(["asc", "desc"]).default("desc"),
 });
-
-export const getProductParamSchema = z.object({
-  slug: z.string(),
-});

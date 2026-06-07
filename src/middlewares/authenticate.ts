@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { appConfig } from "@/config";
 
 export const authenticate = (
   req: Request,
@@ -13,7 +14,7 @@ export const authenticate = (
     return res.status(401).json({ error: "Unauthorized" });
   }
   try {
-    res.locals.user = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as {
+    res.locals.user = jwt.verify(token, appConfig.ACCESS_TOKEN_SECRET) as {
       id: string;
     };
     next();

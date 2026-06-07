@@ -71,8 +71,8 @@ router.post(
 
 router.post(
   "/logout",
-  validateRequestBody(refreshTokenSchema),
   authenticate,
+  validateRequestBody(refreshTokenSchema),
   authController.logoutUser,
 );
 

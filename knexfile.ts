@@ -1,16 +1,17 @@
 // knexfile.ts
 import type { Knex } from "knex";
 import "dotenv/config";
+import { appConfig } from "./src/config/index";
 
 const config: { [key: string]: Knex.Config } = {
   development: {
     client: "pg",
     connection: {
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT || "5432"),
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
+      host: appConfig.DB_HOST,
+      port: parseInt(appConfig.DB_PORT),
+      user: appConfig.DB_USER,
+      password: appConfig.DB_PASSWORD,
+      database: appConfig.DB_NAME,
     },
     pool: { min: 2, max: 10 },
     migrations: {
@@ -25,7 +26,7 @@ const config: { [key: string]: Knex.Config } = {
   },
   production: {
     client: "pg",
-    connection: process.env.DATABASE_URL,
+    connection: "",
     pool: { min: 2, max: 10 },
     migrations: {
       directory: "./dist/db/migrations",

@@ -13,18 +13,6 @@ export const validateRequestBody = (bodySchema: ZodObject) => {
   };
 };
 
-export const validateRequestParams = (paramsSchema: ZodObject) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const result = paramsSchema.strip().safeParse(req.params);
-    if (!result.success) {
-      const message = result.error.issues.map((e) => e.message).join(", ");
-      return res.status(400).send({ message: message || "Validation error" });
-    }
-    req.params = result.data as typeof req.params;
-    next();
-  };
-};
-
 export const validateRequestQuery = (querySchema: ZodObject) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = querySchema.strip().safeParse(req.query);

@@ -9,7 +9,6 @@ import {
   VerifyEmailInput,
 } from "./auth.types";
 import redis from "@/utils/redis";
-import resend from "@/utils/mailer";
 import { authQueue } from "./auth.queue";
 import { generateOtp } from "@/helpers/generate";
 import { renderEmail } from "@/email-templates/renderer";
@@ -24,8 +23,7 @@ import { verifyGoogleToken } from "@/utils/google";
 export const registerUser = async (
   input: RegisterUserInput,
 ): Promise<ResponseType<User>> => {
-  const { email, password, fullname, phone, auth_provider, provider_user_id } =
-    input;
+  const { email, password, fullname, phone } = input;
 
   // Check if user already exists
   const existingUser = await usersService.getUserByEmail(email);
@@ -46,8 +44,7 @@ export const registerUser = async (
       password: hashedPassword,
       fullname,
       phone,
-      auth_provider,
-      provider_user_id,
+      auth_provider: "email",
     })
     .returning([
       "id",
@@ -66,17 +63,18 @@ export const registerUser = async (
 
   await redis.set(`verify-email:${email}`, verificationCode, "EX", 5 * 60);
 
-  await resend.emails.send({
-    from: process.env.MAIL_FROM!,
+  const html = renderEmail("verify-email", {
+    subject: "Welcome to Vortiq!",
+    firstName: fullname.split(" ")[0],
+    email,
+    verificationCode,
+    expiresIn: "5 minutes",
+  });
+
+  await authQueue.add("verify-email", {
     to: email,
     subject: "Verify your email",
-    html: renderEmail("verify-email", {
-      subject: "Welcome to Vortiq!",
-      firstName: fullname.split(" ")[0],
-      email,
-      verificationCode,
-      expiresIn: "5 minutes",
-    }),
+    html,
   });
 
   return {
@@ -94,7 +92,7 @@ export const verifyEmail = async (
   if (!storedCode || storedCode !== code) {
     return {
       error: true,
-      message: "Invalid/Expired verification code",
+      message: "Invalid verification code",
       statusCode: 400,
     };
   }
@@ -128,22 +126,23 @@ export const resendVerificationCode = async (
 ): Promise<ResponseType<null>> => {
   const user = await usersService.getUserByEmail(email);
 
-  if (user.error === false) {
+  if (!user.error) {
     const code = generateOtp();
 
     await redis.set(`verify-email:${email}`, code, "EX", 5 * 60);
 
-    await resend.emails.send({
-      from: process.env.MAIL_FROM!,
+    const html = renderEmail("resend-verification", {
+      subject: "Your new verification code",
+      firstName: user.data.fullname.split(" ")[0],
+      email,
+      verificationCode: code,
+      expiresIn: "5 minutes",
+    });
+
+    await authQueue.add("resend-verification", {
       to: email,
       subject: "Your new verification code",
-      html: renderEmail("resend-verification", {
-        subject: "Your new verification code",
-        firstName: user.data.fullname.split(" ")[0],
-        email,
-        verificationCode: code,
-        expiresIn: "5 minutes",
-      }),
+      html,
     });
   }
 
@@ -262,7 +261,7 @@ export const forgotPassword = async (
 ): Promise<ResponseType<null>> => {
   const user = await usersService.getUserByEmail(email);
 
-  if (user.error === false) {
+  if (!user.error) {
     const resetToken = generateOtp();
     await redis.set(`reset-password:${resetToken}`, user.data.id, "EX", 5 * 60);
 
@@ -273,8 +272,7 @@ export const forgotPassword = async (
       expiresIn: "5 minutes",
     });
 
-    await resend.emails.send({
-      from: process.env.MAIL_FROM!,
+    await authQueue.add("forgot-password", {
       to: email,
       subject: "Reset Your Password",
       html,
@@ -292,7 +290,7 @@ export const resendResetOtp = async (
 ): Promise<ResponseType<null>> => {
   const user = await usersService.getUserByEmail(email);
 
-  if (user.error === false) {
+  if (!user.error) {
     const resetToken = generateOtp();
 
     await redis.set(`reset-password:${resetToken}`, user.data.id, "EX", 5 * 60);
@@ -304,8 +302,7 @@ export const resendResetOtp = async (
       expiresIn: "5 minutes",
     });
 
-    await resend.emails.send({
-      from: process.env.MAIL_FROM!,
+    await authQueue.add("forgot-password", {
       to: email,
       subject: "Reset Your Password",
       html,
@@ -327,7 +324,7 @@ export const resetPassword = async (
   if (!userId) {
     return {
       error: true,
-      message: "Invalid or expired reset token",
+      message: "Invalid reset token",
       statusCode: 400,
     };
   }

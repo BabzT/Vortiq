@@ -1,14 +1,15 @@
 import "dotenv/config";
 import jwt from "jsonwebtoken";
+import { appConfig } from "@/config";
 
 export const generateAccessToken = (userId: string) => {
-  return jwt.sign({ id: userId }, process.env.ACCESS_TOKEN_SECRET as string, {
+  return jwt.sign({ id: userId }, appConfig.ACCESS_TOKEN_SECRET as string, {
     expiresIn: "1h",
   });
 };
 
 export const generateRefreshToken = (userId: string) => {
-  return jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET as string, {
+  return jwt.sign({ id: userId }, appConfig.REFRESH_TOKEN_SECRET as string, {
     expiresIn: "7d",
   });
 };
@@ -17,7 +18,7 @@ export const verifyRefreshToken = (token: string) => {
   try {
     const decoded = jwt.verify(
       token,
-      process.env.REFRESH_TOKEN_SECRET as string,
+      appConfig.REFRESH_TOKEN_SECRET as string,
     ) as { id: string };
     return decoded.id;
   } catch (err) {

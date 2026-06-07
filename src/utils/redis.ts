@@ -1,9 +1,10 @@
 import Redis from "ioredis";
 import "dotenv/config";
+import { appConfig } from "@/config";
 
 const redis = new Redis({
-  host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT || "6379", 10),
+  host: appConfig.REDIS_HOST,
+  port: parseInt(appConfig.REDIS_PORT, 10),
   maxRetriesPerRequest: null,
 });
 

@@ -1,10 +1,11 @@
 import "dotenv/config";
 import { Queue } from "bullmq";
+import { appConfig } from "@/config";
 
 const connection = {
-  host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT || "6379", 10),
-  password: process.env.REDIS_PASSWORD || undefined,
+  host: appConfig.REDIS_HOST,
+  port: parseInt(appConfig.REDIS_PORT, 10),
+  password: appConfig.REDIS_PASSWORD,
 };
 
 export const authQueue = new Queue("authQueue", { connection });

@@ -1,11 +1,12 @@
 import "dotenv/config";
 import { Worker } from "bullmq";
 import resend from "@/utils/mailer";
+import { appConfig } from "@/config";
 
 const connection = {
-  host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT || "6379", 10),
-  password: process.env.REDIS_PASSWORD || undefined,
+  host: appConfig.REDIS_HOST,
+  port: parseInt(appConfig.REDIS_PORT, 10),
+  password: appConfig.REDIS_PASSWORD || undefined,
 };
 
 new Worker(
@@ -15,7 +16,7 @@ new Worker(
     console.log(`[authQueue] Processing job "${job.name}" → ${to}`);
 
     const result = await resend.emails.send({
-      from: process.env.MAIL_FROM!,
+      from: appConfig.MAIL_FROM,
       to,
       subject,
       html,

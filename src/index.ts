@@ -1,11 +1,12 @@
 import "dotenv/config";
+import { appConfig, validateConfig } from "./config";
 import app from "@/app";
 import db from "@/db";
 import "@/workers";
 
-const PORT = process.env.PORT || 5001;
+const PORT = appConfig.PORT || 5001;
 
-export const connectToDatabase = async () => {
+const connectToDatabase = async () => {
   try {
     await db.raw("SELECT 1");
     console.log("Connected to the database successfully.");
@@ -14,6 +15,8 @@ export const connectToDatabase = async () => {
     throw error;
   }
 };
+
+validateConfig();
 
 connectToDatabase()
   .then(() => {
