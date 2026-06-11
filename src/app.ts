@@ -2,10 +2,12 @@ import express from "express";
 import { Request, Response } from "express";
 import routes from "@/routes";
 import cors from "cors"
+import { requestLogger } from "@/middlewares/requestLogger";
 
 const app = express();
 
 app.use(cors({ origin: "http://localhost:3000" }))
+app.use(requestLogger)
 app.use(express.json());
 app.use("/api", routes);
 

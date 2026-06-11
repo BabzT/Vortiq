@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as productsService from "@/modules/products/products.service";
 import { GetProductsQuery } from "./products.types";
+import logger from "@/utils/logger";
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -14,7 +15,7 @@ export const getProducts = async (req: Request, res: Response) => {
       pagination: result.pagination,
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
+    logger.error("Error fetching products", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -34,7 +35,7 @@ export const getProductBySlug = async (req: Request, res: Response) => {
       data: result.data,
     });
   } catch (error) {
-    console.error("Error fetching product:", error);
+    logger.error("Error fetching product", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };

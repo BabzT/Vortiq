@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as brandsService from "./brands.service";
+import logger from "@/utils/logger";
 
 export const getBrands = async (req: Request, res: Response) => {
   try {
@@ -12,7 +13,7 @@ export const getBrands = async (req: Request, res: Response) => {
       });
     }
   } catch (error) {
-    console.error("Error fetching brands:", error);
+    logger.error("Error fetching brands", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };

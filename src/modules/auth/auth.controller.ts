@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as authService from "@/modules/auth/auth.service";
 import { RegisterUserInput, VerifyEmailInput } from "@/modules/auth/auth.types";
+import logger from "@/utils/logger";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -14,7 +15,7 @@ export const registerUser = async (req: Request, res: Response) => {
       data: result.data,
     });
   } catch (error) {
-    console.error("Error registering user:", error);
+    logger.error("Error registering user", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -30,7 +31,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
       message: "Email verified successfully",
     });
   } catch (error) {
-    console.error("Error verifying email:", error);
+    logger.error("Error verifying email", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -43,7 +44,7 @@ export const resendVerificationCode = async (req: Request, res: Response) => {
       message: "Verification code resent successfully",
     });
   } catch (error) {
-    console.error("Error resending verification code:", error);
+    logger.error("Error resending verification code", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -60,7 +61,7 @@ export const loginUser = async (req: Request, res: Response) => {
       data: result.data,
     });
   } catch (error) {
-    console.error("Error logging in user:", error);
+    logger.error("Error logging in user", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -84,7 +85,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       data: result.data,
     });
   } catch (error) {
-    console.error("Error refreshing access token:", error);
+    logger.error("Error refreshing access token", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -97,7 +98,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       message: "Password reset code sent to your email",
     });
   } catch (error) {
-    console.error("Error in forgot password:", error);
+    logger.error("Error in forgot password", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -110,7 +111,7 @@ export const resendResetOtp = async (req: Request, res: Response) => {
       message: "Password reset code resent to your email",
     });
   } catch (error) {
-    console.error("Error resending reset password code:", error);
+    logger.error("Error resending reset password code", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -128,7 +129,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       message: "Password reset successfully",
     });
   } catch (error) {
-    console.error("Error resetting password:", error);
+    logger.error("Error resetting password", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -151,7 +152,7 @@ export const googleAuth = async (req: Request, res: Response) => {
       data: result.data,
     });
   } catch (error) {
-    console.error("Error in Google authentication:", error);
+    logger.error("Error in Google authentication", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -165,7 +166,7 @@ export const logoutUser = async (req: Request, res: Response) => {
     await authService.logoutUser(refreshToken);
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.error("Error logging out:", error);
+    logger.error("Error logging out", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };

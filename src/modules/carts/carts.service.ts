@@ -11,8 +11,8 @@ const getOrCreateCart = async (userId: string, trx: any) => {
   return cart;
 };
 
-const touchCartTimestamp = async (cartId: string) => {
-  return await db("carts")
+const touchCartTimestamp = async (cartId: string, trx = db) => {
+  return await trx("carts")
     .where({ id: cartId })
     .update({ updated_at: db.fn.now() });
 }
@@ -48,52 +48,56 @@ export const getCart = async (
 export const addToCart = async (
   userId: string,
   input: AddToCartInput,
-): Promise<ResponseType<CartWithItemsType>> => {
+): Promise<ResponseType<null>> => {
   const { product_id, quantity } = input;
 
-  const transactionResult = await db.transaction(async (trx) => {
-    const product = await trx("products")
-      .where({ id: product_id })
-      .select("id", "stock")
-      .first();
+  const product = await db("products")
+    .where({ id: product_id })
+    .select("id", "stock")
+    .first();
 
-    if (!product) {
-      return {
-        error: true,
-        message: "Product not found",
-        statusCode: 404
-      };
-    }
-
-    if (product.stock <= 0) {
-      return {
-        error: true,
-        message: "Out of stock",
-        statusCode: 400
-      }
-    }
-
-    const cart = await getOrCreateCart(userId, trx);
-
-    await trx("cart_items")
-      .insert({ cart_id: cart.id, product_id, quantity })
-      .onConflict(["cart_id", "product_id"])
-      .merge({
-        quantity: trx.raw("cart_items.quantity + ?", [quantity]),
-        updated_at: trx.fn.now()
-      });
-
-    await touchCartTimestamp(cart.id)
-
-  });
-
-  if (transactionResult?.error) return {
-    error: true,
-    message: transactionResult?.message,
-    statusCode: transactionResult?.statusCode
+  if (!product) {
+    return {
+      error: true,
+      message: "Product not found",
+      statusCode: 404
+    };
   }
 
-  return getCart(userId);
+  if (product.stock < quantity) {
+    return {
+      error: true,
+      message: "Out of stock",
+      statusCode: 400
+    }
+  }
+
+  try {
+    await db.transaction(async (trx) => {
+      const cart = await getOrCreateCart(userId, trx);
+
+      await trx("cart_items")
+        .insert({ cart_id: cart.id, product_id, quantity })
+        .onConflict(["cart_id", "product_id"])
+        .merge({
+          quantity: trx.raw("cart_items.quantity + ?", [quantity]),
+          updated_at: trx.fn.now()
+        });
+
+      await touchCartTimestamp(cart.id, trx)
+    });
+  } catch (error) {
+    return {
+      error: true,
+      message: "Failed to add item to cart",
+      statusCode: 500
+    }
+  }
+
+  return {
+    error: false,
+    data: null
+  };
 };
 
 export const updateCartItem = async (
@@ -113,9 +117,21 @@ export const updateCartItem = async (
     return { error: true, message: "Cart item not found", statusCode: 404 };
   }
 
-  await db("cart_items").where({ id: itemId }).update({ quantity, updated_at: db.fn.now() });
+  try {
+    await db.transaction(async (trx) => {
+      await trx("cart_items")
+        .where({ id: itemId })
+        .update({ quantity, updated_at: trx.fn.now() });
 
-  await touchCartTimestamp(item.cart_id)
+      await touchCartTimestamp(item.cart_id, trx);
+    });
+  } catch (error) {
+    return {
+      error: true,
+      message: "Failed to update cart item",
+      statusCode: 500
+    }
+  }
 
   return getCart(userId);
 };
@@ -134,9 +150,18 @@ export const removeCartItem = async (
     return { error: true, message: "Cart item not found", statusCode: 404 };
   }
 
-  await db("cart_items").where({ id: itemId }).delete();
-
-  await touchCartTimestamp(item.cart_id)
+  try {
+    await db.transaction(async (trx) => {
+      await trx("cart_items").where({ id: itemId }).delete();
+      await touchCartTimestamp(item.cart_id, trx);
+    });
+  } catch (error) {
+    return {
+      error: true,
+      message: "Failed to remove cart item",
+      statusCode: 500
+    }
+  }
 
   return getCart(userId);
 };
@@ -145,13 +170,23 @@ export const clearCart = async (
   userId: string,
 ): Promise<ResponseType<CartWithItemsType>> => {
   const cart = await db("carts").where({ user_id: userId }).first();
+
   if (!cart) {
     return { error: false, data: { items: [] } };
   }
 
-  await db("cart_items").where({ cart_id: cart.id }).delete();
-
-  await touchCartTimestamp(cart.id)
+  try {
+    await db.transaction(async (trx) => {
+      await trx("cart_items").where({ cart_id: cart.id }).delete();
+      await touchCartTimestamp(cart.id, trx);
+    });
+  } catch (error) {
+    return {
+      error: true,
+      message: "Failed to clear cart",
+      statusCode: 500
+    }
+  }
 
   return { error: false, data: { items: [] } };
 };

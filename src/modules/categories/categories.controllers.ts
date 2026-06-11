@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as categoriesService from "./categories.service";
+import logger from "@/utils/logger";
 
 export const getAllCategories = async (req: Request, res: Response) => {
   try {
@@ -11,7 +12,7 @@ export const getAllCategories = async (req: Request, res: Response) => {
       });
     }
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    logger.error("Error fetching categories", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };

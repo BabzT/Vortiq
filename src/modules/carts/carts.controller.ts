@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as cartsService from "@/modules/carts/carts.service";
 import { AddToCartInput, UpdateCartItemInput } from "./carts.types";
+import logger from "@/utils/logger";
 
 export const getCart = async (req: Request, res: Response) => {
   try {
@@ -13,7 +14,7 @@ export const getCart = async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: "Cart fetched successfully", data: result.data });
   } catch (error) {
-    console.error("Error fetching carts:", error);
+    logger.error("Error fetching carts", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -30,9 +31,9 @@ export const addToCart = async (req: Request, res: Response) => {
 
     return res
       .status(201)
-      .json({ message: "Item added to cart", data: result.data });
+      .json({ message: "Item added to cart" });
   } catch (error) {
-    console.error("Error adding to cart:", error);
+    logger.error("Error adding to cart", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -50,7 +51,7 @@ export const updateCartItem = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: "Cart item updated", data: result.data });
   } catch (error) {
-    console.error("Error updating cart item:", error);
+    logger.error("Error updating cart item", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -67,7 +68,7 @@ export const removeCartItem = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: "Item removed from cart", data: result.data });
   } catch (error) {
-    console.error("Error removing cart item:", error);
+    logger.error("Error removing cart item", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -81,7 +82,7 @@ export const clearCart = async (req: Request, res: Response) => {
     }
     return res.status(200).json({ message: "Cart cleared successfully" });
   } catch (error) {
-    console.error("Error clearing cart:", error);
+    logger.error("Error clearing cart", { error });
     return res.status(500).json({ error: "Internal server error" });
   }
 };
