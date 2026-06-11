@@ -10,7 +10,6 @@ export const getProducts = async (
     search,
     category_slug,
     brand_slug,
-    is_active,
     page,
     limit,
     sort_by,
@@ -21,18 +20,15 @@ export const getProducts = async (
     if (search) {
       qb.where((builder: any) => {
         builder
-          .whereILike("products.name", `%${search}%`)
-          .orWhereILike("products.sku", `%${search}%`);
+          .whereILike("p.name", `%${search}%`)
+          .orWhereILike("p.sku", `%${search}%`);
       });
     }
     if (category_slug) {
-      qb.where("categories.slug", category_slug);
+      qb.where("c.slug", category_slug);
     }
     if (brand_slug) {
-      qb.where("brands.slug", brand_slug);
-    }
-    if (is_active !== undefined) {
-      qb.where("is_active", is_active);
+      qb.where("b.slug", brand_slug);
     }
   };
 
@@ -40,6 +36,7 @@ export const getProducts = async (
     .count("p.id as total")
     .join("categories as c", "p.category_id", "c.id")
     .join("brands as b", "p.brand_id", "b.id")
+    .where("is_active", true)
     .first();
   applyFilters(countQuery);
 
@@ -67,6 +64,7 @@ export const getProducts = async (
     )
     .join("categories as c", "p.category_id", "c.id")
     .join("brands as b", "p.brand_id", "b.id")
+    .where("is_active", true)
     .orderBy(sort_by, sort_order)
     .limit(limit)
     .offset((page - 1) * limit);

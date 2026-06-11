@@ -168,6 +168,14 @@ export const loginUser = async (
     };
   }
 
+  if (user.data.auth_provider === "google") {
+    return {
+      error: true,
+      message: "This account uses Google sign-in. Please login with Google.",
+      statusCode: 400
+    };
+  }
+
   const isMatch = await bcrypt.compare(password, user.data.password as string);
 
   if (!isMatch) {

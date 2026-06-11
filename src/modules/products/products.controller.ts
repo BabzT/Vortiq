@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import * as productsService from "@/modules/products/products.service";
 import { GetProductsQuery } from "./products.types";
-import { error } from "node:console";
 
 export const getProducts = async (req: Request, res: Response) => {
   try {

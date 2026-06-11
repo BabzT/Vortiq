@@ -23,7 +23,6 @@ export interface GetProductsQuery {
   search?: string;
   category_slug?: string;
   brand_slug?: string;
-  is_active?: boolean;
   page: number;
   limit: number;
   sort_by: "name" | "price" | "created_at";

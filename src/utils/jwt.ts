@@ -4,7 +4,7 @@ import { appConfig } from "@/config";
 
 export const generateAccessToken = (userId: string) => {
   return jwt.sign({ id: userId }, appConfig.ACCESS_TOKEN_SECRET as string, {
-    expiresIn: "1h",
+    expiresIn: "24h",
   });
 };
 
