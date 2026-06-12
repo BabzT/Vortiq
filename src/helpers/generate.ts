@@ -16,3 +16,18 @@ export const generateSlug = (name: string) => {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 };
+
+export const generateOrderNumber = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  return Array.from({ length: 8 }, () =>
+    chars.charAt(Math.floor(Math.random() * chars.length)),
+  ).join("");
+};
+
+export const generatePaymentReference = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const random = Array.from({ length: 12 }, () =>
+    chars.charAt(Math.floor(Math.random() * chars.length)),
+  ).join("");
+  return `VRTQ-${random}`;
+};

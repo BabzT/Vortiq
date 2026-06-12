@@ -14,7 +14,7 @@ const getOrCreateCart = async (userId: string, trx: any) => {
 const touchCartTimestamp = async (cartId: string, trx = db) => {
   return await trx("carts")
     .where({ id: cartId })
-    .update({ updated_at: db.fn.now() });
+    .update({ updated_at: trx.fn.now() });
 }
 
 export const getCart = async (
@@ -42,7 +42,10 @@ export const getCart = async (
       "ci.updated_at",
     )
     .where("ci.cart_id", cart.id);
-  return { error: false, data: { ...cart, items } };
+
+  const subtotal = items.reduce((sum, item) => sum + Number(item.product_price) * item.quantity, 0)
+
+  return { error: false, data: { ...cart, items, total_items: items.length, subtotal } };
 };
 
 export const addToCart = async (
@@ -64,12 +67,20 @@ export const addToCart = async (
     };
   }
 
-  if (product.stock < quantity) {
+  const existingItem = await db("cart_items as ci")
+    .join("carts as c", "ci.cart_id", "c.id")
+    .where({ "c.user_id": userId, "ci.product_id": product_id })
+    .select("ci.quantity")
+    .first();
+
+  const existingQuantity = existingItem?.quantity ?? 0;
+
+  if (existingQuantity + quantity > product.stock) {
     return {
       error: true,
-      message: "Out of stock",
+      message: "Not enough stock available",
       statusCode: 400
-    }
+    };
   }
 
   try {

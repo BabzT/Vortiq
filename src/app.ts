@@ -8,6 +8,10 @@ const app = express();
 
 app.use(cors({ origin: "http://localhost:3000" }))
 app.use(requestLogger)
+
+// Raw body required for Paystack webhook HMAC signature verification
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
+
 app.use(express.json());
 app.use("/api", routes);
 

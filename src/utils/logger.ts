@@ -7,7 +7,9 @@ const devFormat = combine(
   colorize(),
   timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   printf(({ level, message, timestamp, ...meta }) => {
-    const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : "";
+    const metaStr = Object.keys(meta).length
+      ? ` ${JSON.stringify(meta, (_, v) => v instanceof Error ? { message: v.message } : v)}`
+      : "";
     return `[${timestamp}] ${level}: ${message}${metaStr}`;
   })
 )

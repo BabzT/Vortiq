@@ -23,6 +23,9 @@ export const appConfig = {
   AWS_ACCESS_KEY_ID: env.AWS_ACCESS_KEY_ID as string,
   AWS_SECRET_ACCESS_KEY: env.AWS_SECRET_ACCESS_KEY as string,
   AWS_S3_BUCKET: env.AWS_S3_BUCKET as string,
+  PAYSTACK_BASE_URL: env.PAYSTACK_BASE_URL as string,
+  PAYSTACK_SECRET_KEY: env.PAYSTACK_SECRET_KEY as string,
+  PAYSTACK_PUBLIC_KEY: env.PAYSTACK_PUBLIC_KEY as string,
 };
 
 const REQUIRED_KEYS: (keyof typeof appConfig)[] = [

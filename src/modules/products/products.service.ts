@@ -1,7 +1,6 @@
 import db from "@/db";
 import { ProductType, GetProductsQuery } from "./products.types";
 import { ResponseType, ResponseTypeWithPagination } from "@/types/response";
-import { error } from "node:console";
 
 export const getProducts = async (
   query: GetProductsQuery,
